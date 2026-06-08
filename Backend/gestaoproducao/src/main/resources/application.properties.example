@@ -1,0 +1,7 @@
+spring.application.name=gestaoproducao
+spring.jpa.hibernate.ddl-auto=update
+
+# Configurações OAuth2 Google (Template - Preencha com suas credenciais localmente)
+spring.security.oauth2.client.registration.google.client-id=SEU_CLIENT_ID_AQUI
+spring.security.oauth2.client.registration.google.client-secret=SEU_CLIENT_SECRET_AQUI
+spring.security.oauth2.client.registration.google.scope=profile,email
