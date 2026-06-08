@@ -20,7 +20,11 @@ import {
   Avatar,
   Tooltip,
   Alert,
-  Snackbar
+  Snackbar,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -67,7 +71,7 @@ const UsuariosPage = () => {
         nome: user.nome || '',
         email: user.email || '',
         senha: '',
-        roles: user.roles || ['USER']
+        roles: Array.isArray(user.roles) ? user.roles : ['USER']
       });
     } else {
       setSelectedUser(null);
@@ -89,11 +93,16 @@ const UsuariosPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = { 
+        ...formData,
+        roles: Array.isArray(formData.roles) ? formData.roles : [formData.roles]
+      };
+      
       if (selectedUser) {
-        await updateUsuario(selectedUser.id, { ...selectedUser, ...formData });
+        await updateUsuario(selectedUser.id, { ...selectedUser, ...payload });
         showSnackbar('Usuário atualizado com sucesso');
       } else {
-        await createUsuario(formData);
+        await createUsuario(payload);
         showSnackbar('Usuário criado com sucesso');
       }
       handleClose();
@@ -240,6 +249,18 @@ const UsuariosPage = () => {
                   onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                 />
               )}
+              
+              <FormControl fullWidth required>
+                <InputLabel>Função (Perfil)</InputLabel>
+                <Select
+                  value={formData.roles[0] || 'USER'}
+                  label="Função (Perfil)"
+                  onChange={(e) => setFormData({ ...formData, roles: [e.target.value] })}
+                >
+                  <MenuItem value="USER">Usuário (USER)</MenuItem>
+                  <MenuItem value="ADMIN">Administrador (ADMIN)</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2 }}>
