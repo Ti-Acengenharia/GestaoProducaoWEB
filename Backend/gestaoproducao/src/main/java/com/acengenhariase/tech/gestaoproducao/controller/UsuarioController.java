@@ -8,6 +8,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
@@ -15,10 +17,46 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @GetMapping
+    public ResponseEntity<List<Usuario>> listar() {
+        return ResponseEntity.ok(usuarioService.listarTodos());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
+        return usuarioService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Usuario> criar(@RequestBody Usuario usuario) {
+        return ResponseEntity.ok(usuarioService.salvar(usuario));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+        return usuarioService.buscarPorId(id)
+                .map(existente -> {
+                    usuario.setId(id);
+                    if (usuario.getSenha() == null || usuario.getSenha().isEmpty()) {
+                        usuario.setSenha(existente.getSenha());
+                    }
+                    return ResponseEntity.ok(usuarioService.salvar(usuario));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        usuarioService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // Endpoint para registrar um usuário comum (email/senha)
     @PostMapping("/registro")
     public ResponseEntity<Usuario> registrar(@RequestBody Usuario usuario) {
-        return ResponseEntity.ok(usuarioService.cadastrarUsuarioComum(usuario));
+        return ResponseEntity.ok(usuarioService.salvar(usuario));
     }
 
     // Endpoint para obter dados do usuário logado (Google ou Comum)

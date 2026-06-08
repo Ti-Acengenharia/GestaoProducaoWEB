@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,6 +17,28 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    public List<Usuario> listarTodos() {
+        return usuarioRepository.findAll();
+    }
+
+    public Optional<Usuario> buscarPorId(Long id) {
+        return usuarioRepository.findById(id);
+    }
+
+    public Usuario salvar(Usuario usuario) {
+        if (usuario.getSenha() != null && !usuario.getSenha().startsWith("$2a$")) {
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        }
+        if (usuario.getRoles() == null || usuario.getRoles().isEmpty()) {
+            usuario.setRoles(Collections.singleton("USER"));
+        }
+        return usuarioRepository.save(usuario);
+    }
+
+    public void deletar(Long id) {
+        usuarioRepository.deleteById(id);
+    }
 
     public Usuario processOAuthPostLogin(String email, String nome, String googleId, String picture) {
         Optional<Usuario> exist = usuarioRepository.findByEmail(email);

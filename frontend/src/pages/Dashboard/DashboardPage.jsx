@@ -25,9 +25,11 @@ import {
   Place as PlaceIcon,
   ReceiptLong as ReportIcon,
   Logout as LogoutIcon,
-  AccountCircle
+  AccountCircle,
+  ManageAccounts as UsersIcon
 } from '@mui/icons-material';
 import logoAzul from '../../assets/logoazul.png';
+import UsuariosPage from '../Usuarios/UsuariosPage';
 
 const drawerWidth = 280;
 
@@ -114,7 +116,50 @@ const DashboardPage = () => {
     { id: 'unidades', text: 'Unidades', icon: <BusinessIcon /> },
     { id: 'locais', text: 'Locais de Serviço', icon: <PlaceIcon /> },
     { id: 'relatorios', text: 'Relatórios', icon: <ReportIcon /> },
+    { id: 'usuarios', text: 'Usuários', icon: <UsersIcon /> },
   ];
+
+  const renderContent = () => {
+    switch (selectedItem) {
+      case 'usuarios':
+        return <UsuariosPage />;
+      case 'dashboard':
+      default:
+        return (
+          <Box>
+            <Typography variant="h4" sx={{ mb: 4, fontWeight: 700, color: '#103795' }}>
+              Bem-vindo ao Sistema de Gestão
+            </Typography>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 3 }}>
+              {/* Cards de Exemplo */}
+              {[
+                { label: 'Serviços Hoje', value: '24', color: '#103795' },
+                { label: 'Colaboradores Ativos', value: '156', color: '#103795' },
+                { label: 'Produção Mensal', value: 'R$ 45.300', color: '#103795' }
+              ].map((card, index) => (
+                <Box 
+                  key={index}
+                  sx={{ 
+                    p: 3, 
+                    bgcolor: '#ffffff', 
+                    borderRadius: '16px', 
+                    border: '1px solid #e0e0e0'
+                  }}
+                >
+                  <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500 }}>
+                    {card.label}
+                  </Typography>
+                  <Typography variant="h4" sx={{ mt: 1, fontWeight: 700, color: card.color }}>
+                    {card.value}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        );
+    }
+  };
 
   return (
     <MainContainer>
@@ -194,35 +239,7 @@ const DashboardPage = () => {
         transition: 'margin 0.3s' 
       }}>
         <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
-          <Typography variant="h4" sx={{ mb: 4, fontWeight: 700, color: '#103795' }}>
-            Bem-vindo ao Sistema de Gestão
-          </Typography>
-          
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 3 }}>
-            {/* Cards de Exemplo */}
-            {[
-              { label: 'Serviços Hoje', value: '24', color: '#103795' },
-              { label: 'Colaboradores Ativos', value: '156', color: '#103795' },
-              { label: 'Produção Mensal', value: 'R$ 45.300', color: '#103795' }
-            ].map((card, index) => (
-              <Box 
-                key={index}
-                sx={{ 
-                  p: 3, 
-                  bgcolor: '#ffffff', 
-                  borderRadius: '16px', 
-                  border: '1px solid #e0e0e0'
-                }}
-              >
-                <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 500 }}>
-                  {card.label}
-                </Typography>
-                <Typography variant="h4" sx={{ mt: 1, fontWeight: 700, color: card.color }}>
-                  {card.value}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
+          {renderContent()}
         </Box>
       </ContentArea>
     </MainContainer>
