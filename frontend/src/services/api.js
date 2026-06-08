@@ -22,4 +22,11 @@ export const createCentroDeCusto = (centro) => api.post('/centros-de-custo', cen
 export const updateCentroDeCusto = (id, centro) => api.put(`/centros-de-custo/${id}`, centro);
 export const deleteCentroDeCusto = (id) => api.delete(`/centros-de-custo/${id}`);
 
+// Unidades de Medida
+export const getUnidades = () => api.get('/unidades');
+export const getUnidadeById = (id) => api.get(`/unidades/${id}`);
+export const createUnidade = (unidade) => api.post('/unidades', unidade);
+export const updateUnidade = (id, unidade) => api.put(`/unidades/${id}`, unidade);
+export const deleteUnidade = (id) => api.delete(`/unidades/${id}`);
+
 export default api;

@@ -27,11 +27,13 @@ import {
   Logout as LogoutIcon,
   AccountCircle,
   ManageAccounts as UsersIcon,
-  AccountTree as CostCenterIcon
+  AccountTree as CostCenterIcon,
+  SquareFoot as UnitIcon
 } from '@mui/icons-material';
 import logoAzul from '../../assets/logoazul.png';
 import UsuariosPage from '../Usuarios/UsuariosPage';
 import CentroDeCustoPage from '../CentroDeCusto/CentroDeCustoPage';
+import UnidadesPage from '../Unidades/UnidadesPage';
 
 const drawerWidth = 280;
 
@@ -128,6 +130,8 @@ const DashboardPage = () => {
         return <UsuariosPage />;
       case 'centros-custo':
         return <CentroDeCustoPage />;
+      case 'unidades':
+        return <UnidadesPage />;
       case 'dashboard':
       default:
         return (
