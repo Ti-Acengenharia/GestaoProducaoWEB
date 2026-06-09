@@ -30,7 +30,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // Salva ou atualiza o usuário no banco de dados assim que o login é bem sucedido
         usuarioService.processOAuthPostLogin(email, nome, googleId, picture);
 
-        // Redireciona para o frontend após o sucesso (ajuste a URL se necessário)
-        response.sendRedirect("http://localhost:5173/dashboard");
+        // Redireciona de volta para o IP/host de onde veio a requisição para a porta 5173 do frontend
+        String serverName = request.getServerName();
+        response.sendRedirect("http://" + serverName + ":5173/dashboard");
     }
 }

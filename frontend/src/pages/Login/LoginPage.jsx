@@ -78,7 +78,8 @@ const SubmitButton = styled(Button)`
 
 const LoginPage = () => {
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    const backendHost = window.location.hostname;
+    window.location.href = `http://${backendHost}:8080/oauth2/authorization/google`;
   };
 
   return (
