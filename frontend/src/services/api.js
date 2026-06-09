@@ -36,4 +36,23 @@ export const createLocalServico = (local) => api.post('/locais-servico', local);
 export const updateLocalServico = (id, local) => api.put(`/locais-servico/${id}`, local);
 export const deleteLocalServico = (id) => api.delete(`/locais-servico/${id}`);
 
+// Colaboradores
+export const getColaboradores = () => api.get('/colaboradores');
+export const getColaboradorById = (id) => api.get(`/colaboradores/${id}`);
+export const createColaborador = (colaborador) => api.post('/colaboradores', colaborador);
+export const updateColaborador = (id, colaborador) => api.put(`/colaboradores/${id}`, colaborador);
+export const deleteColaborador = (id) => api.delete(`/colaboradores/${id}`);
+
+// Acordos (Serviços)
+export const getAcordos = () => api.get('/acordos');
+export const getAcordoById = (id) => api.get(`/acordos/${id}`);
+export const createAcordo = (acordo) => api.post('/acordos', acordo);
+export const updateAcordo = (id, acordo) => api.put(`/acordos/${id}`, acordo);
+export const deleteAcordo = (id) => api.delete(`/acordos/${id}`);
+
+// Produções
+export const getProducoes = () => api.get('/producoes');
+export const createProducao = (producao) => api.post('/producoes', producao);
+export const deleteProducao = (id) => api.delete(`/producoes/${id}`);
+
 export default api;
