@@ -55,4 +55,7 @@ export const getProducoes = () => api.get('/producoes');
 export const createProducao = (producao) => api.post('/producoes', producao);
 export const deleteProducao = (id) => api.delete(`/producoes/${id}`);
 
-export default api;
+// Logout
+export const logout = () => api.post('/logout');
+
+export default api;

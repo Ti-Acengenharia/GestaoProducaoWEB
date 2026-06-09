@@ -46,7 +46,7 @@ import LocaisServicoPage from '../LocaisServico/LocaisServicoPage';
 import ColaboradoresPage from '../Colaboradores/ColaboradoresPage';
 import ServicosPage from '../Servicos/ServicosPage';
 import ProducaoPage from '../Producao/ProducaoPage';
-import { getCentrosDeCusto, getProducoes, getColaboradores, getAcordos, getMe } from '../../services/api';
+import { getCentrosDeCusto, getProducoes, getColaboradores, getAcordos, getMe, logout } from '../../services/api';
 
 const drawerWidth = 280;
 
@@ -488,6 +488,15 @@ const DashboardPage = () => {
     };
     fetchUser();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+    window.location.href = '/login';
+  };
 
   // Estados de Filtros do Dashboard
   const [filterStartDate, setFilterStartDate] = useState('');
@@ -958,7 +967,7 @@ const DashboardPage = () => {
         
         <List>
           <ListItem disablePadding>
-            <NavItem>
+            <NavItem onClick={handleLogout}>
               <ListItemIcon sx={{ minWidth: 44, color: '#444746' }}>
                 <LogoutIcon />
               </ListItemIcon>
