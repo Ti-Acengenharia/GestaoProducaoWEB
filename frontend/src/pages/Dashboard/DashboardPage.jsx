@@ -46,6 +46,7 @@ import LocaisServicoPage from '../LocaisServico/LocaisServicoPage';
 import ColaboradoresPage from '../Colaboradores/ColaboradoresPage';
 import ServicosPage from '../Servicos/ServicosPage';
 import ProducaoPage from '../Producao/ProducaoPage';
+import RelatoriosPage from '../Relatorios/RelatoriosPage';
 import { getCentrosDeCusto, getProducoes, getColaboradores, getAcordos, getMe, logout } from '../../services/api';
 
 const drawerWidth = 280;
@@ -740,6 +741,8 @@ const DashboardPage = () => {
         );
       case 'locais':
         return <LocaisServicoPage />;
+      case 'relatorios':
+        return <RelatoriosPage selectedObraId={selectedObraId} />;
       case 'dashboard':
       default:
         return (
