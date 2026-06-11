@@ -862,6 +862,8 @@ const DashboardPage = () => {
                     {card.value}
                   </Typography>
                 </Box>
+              ))}
+            </Box>
                  {/* Seção de Gráficos */}
             <Grid container spacing={3} sx={{ mt: 3 }}>
               <Grid item="true" xs={12} md={selectedObraId === 'all' ? 4 : 6}>
