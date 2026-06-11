@@ -70,11 +70,17 @@ const RelatoriosPage = ({ selectedObraId }) => {
           getAcordos(),
           getLocaisServico()
         ]);
-        setObras(obrasRes.data);
-        setProducoes(prodRes.data);
-        setColaboradores(colabsRes.data);
-        setAcordos(acordosRes.data);
-        setLocais(locaisRes.data);
+
+        if (typeof obrasRes.data === 'string' && obrasRes.data.includes('<!DOCTYPE html>')) {
+          window.location.href = '/login';
+          return;
+        }
+
+        setObras(Array.isArray(obrasRes.data) ? obrasRes.data : []);
+        setProducoes(Array.isArray(prodRes.data) ? prodRes.data : []);
+        setColaboradores(Array.isArray(colabsRes.data) ? colabsRes.data : []);
+        setAcordos(Array.isArray(acordosRes.data) ? acordosRes.data : []);
+        setLocais(Array.isArray(locaisRes.data) ? locaisRes.data : []);
       } catch (error) {
         console.error('Erro ao carregar dados do relatório:', error);
       } finally {

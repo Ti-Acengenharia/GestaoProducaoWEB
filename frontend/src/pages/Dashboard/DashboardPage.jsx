@@ -862,12 +862,9 @@ const DashboardPage = () => {
                     {card.value}
                   </Typography>
                 </Box>
-              ))}
-            </Box>
-
-            {/* Seção de Gráficos */}
+                 {/* Seção de Gráficos */}
             <Grid container spacing={3} sx={{ mt: 3 }}>
-              <Grid item xs={12} md={selectedObraId === 'all' ? 4 : 6}>
+              <Grid item="true" xs={12} md={selectedObraId === 'all' ? 4 : 6}>
                 <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#103795', mb: 2 }}>
                     Evolução da Produção (Valor Diário)
@@ -876,7 +873,7 @@ const DashboardPage = () => {
                 </Paper>
               </Grid>
 
-              <Grid item xs={12} md={selectedObraId === 'all' ? 4 : 6}>
+              <Grid item="true" xs={12} md={selectedObraId === 'all' ? 4 : 6}>
                 <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#103795', mb: 2 }}>
                     Top Colaboradores (Bônus Acumulado)
@@ -886,7 +883,7 @@ const DashboardPage = () => {
               </Grid>
 
               {selectedObraId === 'all' && (
-                <Grid item xs={12} md={4}>
+                <Grid item="true" xs={12} md={4}>
                   <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 15px rgba(0,0,0,0.03)', height: '100%' }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#103795', mb: 2 }}>
                       Comparativo de Produção por Obra
