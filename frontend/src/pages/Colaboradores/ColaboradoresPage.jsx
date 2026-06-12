@@ -178,15 +178,41 @@ const ColaboradoresPage = () => {
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Converte para array de arrays para encontrar o cabeçalho dinamicamente
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const headerRowIndex = rows.findIndex(row => row && row.includes('nomeCompleto'));
+
+        if (headerRowIndex === -1) {
+          showSnackbar('Planilha inválida. Cabeçalho "nomeCompleto" não encontrado.', 'error');
+          setImporting(false);
+          return;
+        }
+
+        const headers = rows[headerRowIndex];
+        const dataRows = rows.slice(headerRowIndex + 1);
 
         const errors = [];
         const validData = [];
         const existingCpfs = colaboradores.map(c => String(c.cpf).replace(/\D/g, ''));
         const seenCpfs = new Set();
 
-        jsonData.forEach((row, index) => {
-          const rowNum = index + 6; // Ajustado para bater com a planilha modelo (cabeçalho na linha 5)
+        dataRows.forEach((rowArray, index) => {
+          const rowNum = headerRowIndex + 2 + index; // 1-indexed row number in the Excel sheet
+
+          // Converte o array da linha para objeto mapeado pelos cabeçalhos
+          const row = {};
+          headers.forEach((header, colIdx) => {
+            row[header] = rowArray[colIdx];
+          });
+
+          // Pula linhas completamente vazias
+          const isEmpty = Object.values(row).every(val => val === undefined || val === null || String(val).trim() === '');
+          if (isEmpty) return;
+
+          // Pula notas ou avisos que começam com '*'
+          if (String(row.nomeCompleto || '').trim().startsWith('*')) return;
+
           const cpf = String(row.cpf || '').replace(/\D/g, '');
 
           // Validações
