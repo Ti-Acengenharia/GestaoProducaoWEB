@@ -50,6 +50,13 @@ public class ProducaoService {
         Set<Colaborador> colaboradores = new HashSet<>(colaboradorRepository.findAllById(dto.getColaboradoresIds()));
         if (colaboradores.isEmpty()) throw new RuntimeException("Colaboradores não encontrados");
 
+        // Validação: garantir que todos os colaboradores pertençam ao Centro de Custo informado
+        for (Colaborador c : colaboradores) {
+            if (c.getCentroDeCusto() == null || !c.getCentroDeCusto().getId().equals(centro.getId())) {
+                throw new RuntimeException("O colaborador " + c.getNomeCompleto() + " não pertence ao Centro de Custo desta produção.");
+            }
+        }
+
         Producao producao = new Producao();
         BeanUtils.copyProperties(dto, producao, "id");
         producao.setAcordo(acordo);

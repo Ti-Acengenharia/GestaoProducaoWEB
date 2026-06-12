@@ -20,6 +20,7 @@ import {
   Grid,
   Divider,
   Alert,
+  MenuItem,
   Snackbar,
   List,
   ListItem,
@@ -425,13 +426,14 @@ const ColaboradoresPage = () => {
                     fullWidth
                     value={formData.centroDeCustoId}
                     onChange={(e) => setFormData({ ...formData, centroDeCustoId: e.target.value })}
-                    SelectProps={{ native: true }}
                   >
-                    <option value="">Selecione um Centro de Custo</option>
+                    <MenuItem value="">
+                      <em>Selecione um Centro de Custo</em>
+                    </MenuItem>
                     {centrosDeCusto.map((cc) => (
-                      <option key={cc.id} value={cc.id}>
+                      <MenuItem key={cc.id} value={cc.id}>
                         {cc.nome}
-                      </option>
+                      </MenuItem>
                     ))}
                   </TextField>
                 </Grid>

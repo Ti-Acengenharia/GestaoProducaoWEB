@@ -18,6 +18,7 @@ import {
   TextField,
   Grid,
   Alert,
+  Autocomplete,
   Snackbar,
   MenuItem,
   Tooltip,
@@ -222,6 +223,10 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
     );
   };
 
+  const availableColaboradores = colaboradores.filter(
+    (c) => c.centroDeCustoId === Number(formData.centroCustoId)
+  );
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -343,46 +348,71 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
                 ))}
               </TextField>
 
-              <FormControl fullWidth required>
-                <InputLabel id="colab-label">Colaboradores</InputLabel>
-                <Select
-                  labelId="colab-label"
-                  multiple
-                  required
-                  disabled={!formData.acordoId}
-                  value={formData.colaboradoresIds}
-                  onChange={handleColaboradoresChange}
-                  input={<OutlinedInput label="Colaboradores" />}
-                  renderValue={(selected) => {
-                    if (!selected || selected.length === 0) {
-                      return "\u00A0";
+              <TextField
+                select
+                label="Centro de Custo"
+                fullWidth
+                required
+                disabled={selectedObraId !== 'all'}
+                value={formData.centroCustoId}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  centroCustoId: e.target.value,
+                  colaboradoresIds: [] // Limpa a seleção ao trocar de obra/centro
+                })}
+              >
+                {centros.map((cc) => (
+                  <MenuItem key={cc.id} value={cc.id}>
+                    {cc.id} - {cc.nome}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <Autocomplete
+                multiple
+                id="colaboradores-select"
+                disabled={!formData.acordoId || !formData.centroCustoId}
+                options={availableColaboradores}
+                getOptionLabel={(option) => option.nomeCompleto}
+                value={colaboradores.filter(c => formData.colaboradoresIds.includes(c.id))}
+                onChange={(event, newValue) => {
+                  if (selectedAcordo && !selectedAcordo.permitirEquipe && newValue.length > 1) {
+                    showSnackbar('Este serviço não permite equipe. Selecione apenas um colaborador.', 'warning');
+                    return;
+                  }
+                  setFormData({
+                    ...formData,
+                    colaboradoresIds: newValue.map(option => option.id)
+                  });
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Colaboradores"
+                    placeholder={formData.centroCustoId ? "Pesquise por nome..." : "Selecione um Centro de Custo primeiro"}
+                    required={formData.colaboradoresIds.length === 0}
+                    helperText={
+                      !formData.acordoId
+                        ? "Selecione um serviço primeiro para habilitar a escolha de colaboradores."
+                        : !formData.centroCustoId 
+                          ? "Selecione um Centro de Custo primeiro para carregar os colaboradores."
+                          : selectedAcordo && !selectedAcordo.permitirEquipe
+                            ? "Este serviço é individual. Apenas 1 colaborador pode ser selecionado."
+                            : ""
                     }
-                    return selected
-                      .map((val) => {
-                        const c = colaboradores.find((col) => col.id === val);
-                        return c ? c.nomeCompleto : val;
-                      })
-                      .join(', ');
-                  }}
-                >
-                  {colaboradores.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>
-                      <Checkbox checked={formData.colaboradoresIds.indexOf(c.id) > -1} />
-                      <ListItemText primary={c.nomeCompleto} secondary={c.funcao} />
-                    </MenuItem>
-                  ))}
-                </Select>
-                {!formData.acordoId && (
-                  <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, ml: 1 }}>
-                    Selecione um serviço primeiro para habilitar a escolha de colaboradores.
-                  </Typography>
+                  />
                 )}
-                {selectedAcordo && !selectedAcordo.permitirEquipe && (
-                  <Typography variant="caption" color="warning.main" sx={{ mt: 0.5, ml: 1, fontWeight: 500 }}>
-                    Este serviço é individual. Apenas 1 colaborador pode ser selecionado.
-                  </Typography>
-                )}
-              </FormControl>
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      label={option.nomeCompleto}
+                      size="small"
+                      {...getTagProps({ index })}
+                      key={option.id}
+                    />
+                  ))
+                }
+              />
 
               <TextField
                 select
@@ -395,22 +425,6 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
                 {locais.map((l) => (
                   <MenuItem key={l.id} value={l.id}>
                     {l.nomeLocal} ({l.tipoLocal})
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                select
-                label="Centro de Custo"
-                fullWidth
-                required
-                disabled={selectedObraId !== 'all'}
-                value={formData.centroCustoId}
-                onChange={(e) => setFormData({ ...formData, centroCustoId: e.target.value })}
-              >
-                {centros.map((cc) => (
-                  <MenuItem key={cc.id} value={cc.id}>
-                    {cc.id} - {cc.nome}
                   </MenuItem>
                 ))}
               </TextField>
