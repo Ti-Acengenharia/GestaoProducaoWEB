@@ -57,6 +57,11 @@ public class ProducaoService {
             }
         }
 
+        // Validação: garantir que o LocalServico selecionado pertença ao mesmo Centro de Custo da Producao
+        if (local.getCentroDeCusto() == null || !local.getCentroDeCusto().getId().equals(centro.getId())) {
+            throw new RuntimeException("O local de serviço selecionado não pertence ao Centro de Custo desta produção.");
+        }
+
         Producao producao = new Producao();
         BeanUtils.copyProperties(dto, producao, "id");
         producao.setAcordo(acordo);
@@ -80,7 +85,21 @@ public class ProducaoService {
         dto.setValorUnitario(p.getAcordo().getValor());
         dto.setValorTotal(p.getValorTotalServico());
         dto.setLocalServicoId(p.getLocalServico().getId());
-        dto.setLocalNome(p.getLocalServico().getNomeLocal());
+        
+        StringBuilder sb = new StringBuilder();
+        if (p.getLocalServico().getNivel01() != null && !p.getLocalServico().getNivel01().isBlank()) {
+            sb.append(p.getLocalServico().getNivel01());
+        }
+        if (p.getLocalServico().getNivel02() != null && !p.getLocalServico().getNivel02().isBlank()) {
+            if (sb.length() > 0) sb.append(" - ");
+            sb.append(p.getLocalServico().getNivel02());
+        }
+        if (p.getLocalServico().getNivel03() != null && !p.getLocalServico().getNivel03().isBlank()) {
+            if (sb.length() > 0) sb.append(" - ");
+            sb.append(p.getLocalServico().getNivel03());
+        }
+        dto.setLocalNome(sb.toString());
+
         dto.setCentroCustoId(p.getCentroDeCusto().getId());
         dto.setCentroCustoNome(p.getCentroDeCusto().getNome());
         dto.setColaboradoresIds(p.getColaboradores().stream().map(Colaborador::getId).collect(Collectors.toSet()));

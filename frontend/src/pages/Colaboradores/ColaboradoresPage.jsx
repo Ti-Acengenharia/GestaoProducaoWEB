@@ -101,7 +101,7 @@ const ColaboradoresPage = () => {
         agencia: colaborador.agencia || '',
         operacao: colaborador.operacao || '',
         numeroConta: colaborador.numeroConta || '',
-        centroDeCustoId: colaborador.centroDeCustoId || ''
+        centroDeCustoId: colaborador.centroDeCustoId ? String(colaborador.centroDeCustoId) : ''
       });
     } else {
       setSelectedColaborador(null);
@@ -431,7 +431,7 @@ const ColaboradoresPage = () => {
                       <em>Selecione um Centro de Custo</em>
                     </MenuItem>
                     {centrosDeCusto.map((cc) => (
-                      <MenuItem key={cc.id} value={cc.id}>
+                      <MenuItem key={cc.id} value={String(cc.id)}>
                         {cc.nome}
                       </MenuItem>
                     ))}

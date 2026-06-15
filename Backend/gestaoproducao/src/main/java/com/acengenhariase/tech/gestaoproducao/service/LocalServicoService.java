@@ -2,8 +2,9 @@ package com.acengenhariase.tech.gestaoproducao.service;
 
 import com.acengenhariase.tech.gestaoproducao.dto.LocalServicoDTO;
 import com.acengenhariase.tech.gestaoproducao.model.LocalServico;
+import com.acengenhariase.tech.gestaoproducao.model.CentroDeCusto;
 import com.acengenhariase.tech.gestaoproducao.repository.LocalServicoRepository;
-import org.springframework.beans.BeanUtils;
+import com.acengenhariase.tech.gestaoproducao.repository.CentroDeCustoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,9 @@ public class LocalServicoService {
 
     @Autowired
     private LocalServicoRepository repository;
+
+    @Autowired
+    private CentroDeCustoRepository centroDeCustoRepository;
 
     @Transactional(readOnly = true)
     public List<LocalServicoDTO> listarTodos() {
@@ -43,7 +47,18 @@ public class LocalServicoService {
         LocalServico localExistente = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Local de serviço não encontrado com o ID: " + id));
 
-        BeanUtils.copyProperties(dto, localExistente, "id");
+        localExistente.setNivel01(dto.getNivel01());
+        localExistente.setNivel02(dto.getNivel02());
+        localExistente.setNivel03(dto.getNivel03());
+        
+        if (dto.getCentroDeCustoId() != null) {
+            CentroDeCusto cc = centroDeCustoRepository.findById(dto.getCentroDeCustoId())
+                    .orElseThrow(() -> new RuntimeException("Centro de custo não encontrado com o ID: " + dto.getCentroDeCustoId()));
+            localExistente.setCentroDeCusto(cc);
+        } else {
+            throw new RuntimeException("O centro de custo é obrigatório");
+        }
+
         return toDTO(repository.save(localExistente));
     }
 
@@ -57,13 +72,30 @@ public class LocalServicoService {
 
     private LocalServicoDTO toDTO(LocalServico local) {
         LocalServicoDTO dto = new LocalServicoDTO();
-        BeanUtils.copyProperties(local, dto);
+        dto.setId(local.getId());
+        dto.setNivel01(local.getNivel01());
+        dto.setNivel02(local.getNivel02());
+        dto.setNivel03(local.getNivel03());
+        if (local.getCentroDeCusto() != null) {
+            dto.setCentroDeCustoId(local.getCentroDeCusto().getId());
+            dto.setCentroDeCustoNome(local.getCentroDeCusto().getNome());
+        }
         return dto;
     }
 
     private LocalServico fromDTO(LocalServicoDTO dto) {
         LocalServico local = new LocalServico();
-        BeanUtils.copyProperties(dto, local);
+        local.setId(dto.getId());
+        local.setNivel01(dto.getNivel01());
+        local.setNivel02(dto.getNivel02());
+        local.setNivel03(dto.getNivel03());
+        if (dto.getCentroDeCustoId() != null) {
+            CentroDeCusto cc = centroDeCustoRepository.findById(dto.getCentroDeCustoId())
+                    .orElseThrow(() -> new RuntimeException("Centro de custo não encontrado com o ID: " + dto.getCentroDeCustoId()));
+            local.setCentroDeCusto(cc);
+        } else {
+            throw new RuntimeException("O centro de custo é obrigatório");
+        }
         return local;
     }
 }

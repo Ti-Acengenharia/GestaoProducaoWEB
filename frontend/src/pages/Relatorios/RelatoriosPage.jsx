@@ -133,7 +133,9 @@ const RelatoriosPage = ({ selectedObraId }) => {
             return {
               ...p,
               servicoNome: acordoObj ? acordoObj.nomeServico : `Serviço ID: ${p.acordoId}`,
-              localNome: localObj ? localObj.nomeLocal : `Local ID: ${p.localServicoId}`,
+              localNome: localObj 
+                ? [localObj.nivel01, localObj.nivel02, localObj.nivel03].filter(Boolean).join(' - ')
+                : (p.localNome || `Local ID: ${p.localServicoId}`),
               isTeam,
               shareValue
             };

@@ -18,7 +18,6 @@ import {
   TextField,
   Alert,
   Snackbar,
-  Tooltip,
   MenuItem
 } from '@mui/material';
 import {
@@ -27,30 +26,24 @@ import {
   Delete as DeleteIcon,
   Place as PlaceIcon
 } from '@mui/icons-material';
-import { getLocaisServico, createLocalServico, updateLocalServico, deleteLocalServico } from '../../services/api';
+import { getLocaisServico, createLocalServico, updateLocalServico, deleteLocalServico, getCentrosDeCusto } from '../../services/api';
 
 const LocaisServicoPage = () => {
   const [locais, setLocais] = useState([]);
+  const [centrosDeCusto, setCentrosDeCusto] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedLocal, setSelectedLocal] = useState(null);
   const [formData, setFormData] = useState({
-    nomeLocal: '',
-    tipoLocal: '',
-    detalhesLocal: ''
+    nivel01: '',
+    nivel02: '',
+    nivel03: '',
+    centroDeCustoId: ''
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const tiposLocal = [
-    'Unidade Residencial',
-    'Área Comum',
-    'Fachada',
-    'Infraestrutura',
-    'Escritório',
-    'Outro'
-  ];
-
   useEffect(() => {
     fetchLocais();
+    fetchCentrosDeCusto();
   }, []);
 
   const fetchLocais = async () => {
@@ -62,6 +55,15 @@ const LocaisServicoPage = () => {
     }
   };
 
+  const fetchCentrosDeCusto = async () => {
+    try {
+      const response = await getCentrosDeCusto();
+      setCentrosDeCusto(response.data);
+    } catch (error) {
+      showSnackbar('Erro ao carregar centros de custo', 'error');
+    }
+  };
+
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
@@ -70,16 +72,18 @@ const LocaisServicoPage = () => {
     if (local) {
       setSelectedLocal(local);
       setFormData({
-        nomeLocal: local.nomeLocal || '',
-        tipoLocal: local.tipoLocal || '',
-        detalhesLocal: local.detalhesLocal || ''
+        nivel01: local.nivel01 || '',
+        nivel02: local.nivel02 || '',
+        nivel03: local.nivel03 || '',
+        centroDeCustoId: local.centroDeCustoId ? String(local.centroDeCustoId) : ''
       });
     } else {
       setSelectedLocal(null);
       setFormData({
-        nomeLocal: '',
-        tipoLocal: '',
-        detalhesLocal: ''
+        nivel01: '',
+        nivel02: '',
+        nivel03: '',
+        centroDeCustoId: ''
       });
     }
     setOpen(true);
@@ -93,11 +97,18 @@ const LocaisServicoPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const dataToSave = {
+        nivel01: formData.nivel01,
+        nivel02: formData.nivel02 || null,
+        nivel03: formData.nivel03 || null,
+        centroDeCustoId: formData.centroDeCustoId ? Number(formData.centroDeCustoId) : null
+      };
+
       if (selectedLocal) {
-        await updateLocalServico(selectedLocal.id, formData);
+        await updateLocalServico(selectedLocal.id, dataToSave);
         showSnackbar('Local de serviço atualizado com sucesso');
       } else {
-        await createLocalServico(formData);
+        await createLocalServico(dataToSave);
         showSnackbar('Local de serviço criado com sucesso');
       }
       handleClose();
@@ -140,18 +151,20 @@ const LocaisServicoPage = () => {
         <Table>
           <TableHead sx={{ backgroundColor: '#f8f9fa' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 600 }}>Nome / Identificação</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Tipo</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Canteiro / Detalhes</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Nível 1</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Nível 2</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Nível 3</TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Centro de Custo</TableCell>
               <TableCell align="right" sx={{ fontWeight: 600 }}>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {locais.map((local) => (
               <TableRow key={local.id} hover>
-                <TableCell sx={{ fontWeight: 500 }}>{local.nomeLocal}</TableCell>
-                <TableCell>{local.tipoLocal}</TableCell>
-                <TableCell>{local.detalhesLocal || '-'}</TableCell>
+                <TableCell sx={{ fontWeight: 500 }}>{local.nivel01}</TableCell>
+                <TableCell>{local.nivel02 || '-'}</TableCell>
+                <TableCell>{local.nivel03 || '-'}</TableCell>
+                <TableCell>{local.centroDeCustoNome || 'Não Informado'}</TableCell>
                 <TableCell align="right">
                   <IconButton onClick={() => handleOpen(local)} color="primary" size="small">
                     <EditIcon fontSize="small" />
@@ -164,7 +177,7 @@ const LocaisServicoPage = () => {
             ))}
             {locais.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                   Nenhum local de serviço encontrado.
                 </TableCell>
               </TableRow>
@@ -182,34 +195,40 @@ const LocaisServicoPage = () => {
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               <TextField
-                label="Nome/Identificação (ex: Apto 101)"
-                fullWidth
-                required
-                value={formData.nomeLocal}
-                onChange={(e) => setFormData({ ...formData, nomeLocal: e.target.value })}
-              />
-              <TextField
                 select
-                label="Tipo de Local"
+                label="Centro de Custo"
                 fullWidth
                 required
-                value={formData.tipoLocal}
-                onChange={(e) => setFormData({ ...formData, tipoLocal: e.target.value })}
+                value={formData.centroDeCustoId}
+                onChange={(e) => setFormData({ ...formData, centroDeCustoId: e.target.value })}
               >
-                {tiposLocal.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
+                <MenuItem value="">
+                  <em>Selecione um Centro de Custo</em>
+                </MenuItem>
+                {centrosDeCusto.map((cc) => (
+                  <MenuItem key={cc.id} value={String(cc.id)}>
+                    {cc.nome}
                   </MenuItem>
                 ))}
               </TextField>
               <TextField
-                label="Detalhes (Opcional)"
+                label="Nível 1 (ex: Bloco A)"
                 fullWidth
-                multiline
-                rows={2}
-                value={formData.detalhesLocal}
-                onChange={(e) => setFormData({ ...formData, detalhesLocal: e.target.value })}
-                placeholder="Ex: Bloco A, 1º Andar..."
+                required
+                value={formData.nivel01}
+                onChange={(e) => setFormData({ ...formData, nivel01: e.target.value })}
+              />
+              <TextField
+                label="Nível 2 (ex: Apt 101 - Opcional)"
+                fullWidth
+                value={formData.nivel02}
+                onChange={(e) => setFormData({ ...formData, nivel02: e.target.value })}
+              />
+              <TextField
+                label="Nível 3 (ex: Banheiro - Opcional)"
+                fullWidth
+                value={formData.nivel03}
+                onChange={(e) => setFormData({ ...formData, nivel03: e.target.value })}
               />
             </Box>
           </DialogContent>

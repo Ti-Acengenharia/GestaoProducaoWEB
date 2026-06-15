@@ -114,7 +114,7 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
       quantidade: '',
       acordoId: '',
       localServicoId: '',
-      centroCustoId: selectedObraId !== 'all' ? selectedObraId : '',
+      centroCustoId: selectedObraId !== 'all' ? String(selectedObraId) : '',
       colaboradoresIds: []
     });
     setOpen(true);
@@ -225,6 +225,10 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
 
   const availableColaboradores = colaboradores.filter(
     (c) => c.centroDeCustoId === Number(formData.centroCustoId)
+  );
+
+  const availableLocais = locais.filter(
+    (l) => l.centroDeCustoId === Number(formData.centroCustoId)
   );
 
   return (
@@ -358,11 +362,12 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
                 onChange={(e) => setFormData({ 
                   ...formData, 
                   centroCustoId: e.target.value,
-                  colaboradoresIds: [] // Limpa a seleção ao trocar de obra/centro
+                  colaboradoresIds: [], // Limpa a seleção ao trocar de obra/centro
+                  localServicoId: '' // Limpa o local ao trocar de obra/centro
                 })}
               >
                 {centros.map((cc) => (
-                  <MenuItem key={cc.id} value={cc.id}>
+                  <MenuItem key={cc.id} value={String(cc.id)}>
                     {cc.id} - {cc.nome}
                   </MenuItem>
                 ))}
@@ -419,12 +424,16 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
                 label="Local de Serviço"
                 fullWidth
                 required
+                disabled={!formData.centroCustoId}
                 value={formData.localServicoId}
                 onChange={(e) => setFormData({ ...formData, localServicoId: e.target.value })}
+                helperText={!formData.centroCustoId ? "Selecione um Centro de Custo primeiro para habilitar a escolha de locais." : ""}
               >
-                {locais.map((l) => (
+                {availableLocais.map((l) => (
                   <MenuItem key={l.id} value={l.id}>
-                    {l.nomeLocal} ({l.tipoLocal})
+                    {l.nivel01}
+                    {l.nivel02 ? ` - ${l.nivel02}` : ''}
+                    {l.nivel03 ? ` - ${l.nivel03}` : ''}
                   </MenuItem>
                 ))}
               </TextField>
