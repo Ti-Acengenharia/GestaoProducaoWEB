@@ -43,4 +43,10 @@ public class LocalServicoController {
         service.deletar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deletarTodos() {
+        service.deletarTodos();
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -70,6 +70,11 @@ public class LocalServicoService {
         repository.deleteById(id);
     }
 
+    @Transactional
+    public void deletarTodos() {
+        repository.deleteAll();
+    }
+
     private LocalServicoDTO toDTO(LocalServico local) {
         LocalServicoDTO dto = new LocalServicoDTO();
         dto.setId(local.getId());

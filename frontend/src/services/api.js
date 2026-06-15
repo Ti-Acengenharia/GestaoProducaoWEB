@@ -35,6 +35,7 @@ export const getLocalServicoById = (id) => api.get(`/locais-servico/${id}`);
 export const createLocalServico = (local) => api.post('/locais-servico', local);
 export const updateLocalServico = (id, local) => api.put(`/locais-servico/${id}`, local);
 export const deleteLocalServico = (id) => api.delete(`/locais-servico/${id}`);
+export const deleteLocaisServico = () => api.delete('/locais-servico');
 
 // Colaboradores
 export const getColaboradores = () => api.get('/colaboradores');

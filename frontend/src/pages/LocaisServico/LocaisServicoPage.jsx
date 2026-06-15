@@ -37,7 +37,7 @@ import {
   Help as HelpIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
-import { getLocaisServico, createLocalServico, updateLocalServico, deleteLocalServico, getCentrosDeCusto } from '../../services/api';
+import { getLocaisServico, createLocalServico, updateLocalServico, deleteLocalServico, getCentrosDeCusto, deleteLocaisServico } from '../../services/api';
 
 const LocaisServicoPage = () => {
   const [locais, setLocais] = useState([]);
@@ -148,6 +148,25 @@ const LocaisServicoPage = () => {
       } catch (error) {
         showSnackbar('Erro ao excluir local de serviço', 'error');
       }
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    const password = window.prompt("Para confirmar a exclusão de TODOS os locais de serviço, insira a senha:");
+    if (password === null) return;
+    if (password === '030206sexta') {
+      if (window.confirm("ATENÇÃO: Isso excluirá permanentemente TODOS os locais de serviço. Deseja continuar?")) {
+        try {
+          await deleteLocaisServico();
+          showSnackbar('Todos os locais de serviço foram excluídos com sucesso.');
+          fetchLocais();
+        } catch (error) {
+          const message = error.response?.data?.message || 'Erro ao excluir locais de serviço (pode haver produções vinculadas).';
+          showSnackbar(message, 'error');
+        }
+      }
+    } else {
+      showSnackbar('Senha incorreta! Operação cancelada.', 'error');
     }
   };
 
@@ -354,6 +373,15 @@ const LocaisServicoPage = () => {
           Locais de Serviço
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={handleDeleteAll}
+            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+          >
+            Excluir Tudo
+          </Button>
           <Button
             variant="outlined"
             startIcon={<ImportIcon />}
