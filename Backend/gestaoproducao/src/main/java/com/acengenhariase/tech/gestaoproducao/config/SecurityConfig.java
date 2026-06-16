@@ -40,7 +40,25 @@ public class SecurityConfig {
                 .permitAll()
             );
 
-        return http.build();
+    @Bean
+    public org.springframework.security.oauth2.client.registration.ClientRegistrationRepository clientRegistrationRepository() {
+        org.springframework.security.oauth2.core.AuthorizationGrantType authorizationGrantType = org.springframework.security.oauth2.core.AuthorizationGrantType.AUTHORIZATION_CODE;
+        org.springframework.security.oauth2.core.ClientAuthenticationMethod clientAuthMethod = org.springframework.security.oauth2.core.ClientAuthenticationMethod.CLIENT_SECRET_BASIC;
+        org.springframework.security.oauth2.client.registration.ClientRegistration registration = org.springframework.security.oauth2.client.registration.ClientRegistration
+                .withRegistrationId("google")
+                .clientId(System.getenv("GOOGLE_CLIENT_ID"))
+                .clientSecret(System.getenv("GOOGLE_CLIENT_SECRET"))
+                .clientAuthenticationMethod(clientAuthMethod)
+                .authorizationGrantType(authorizationGrantType)
+                .redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}")
+                .scope("profile", "email")
+                .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
+                .tokenUri("https://oauth2.googleapis.com/token")
+                .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
+                .userNameAttributeName("sub")
+                .clientName("Google")
+                .build();
+        return new org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository(registration);
     }
 }
 
