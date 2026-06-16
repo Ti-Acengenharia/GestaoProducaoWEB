@@ -80,3 +80,22 @@ jobs:
           file: ./frontend/Dockerfile
           push: false # Mudar para true se habilitar o login acima
           tags: gestaoproducaoweb-frontend:latest
+
+  # Job 4: Deploy Automático na VPS via SSH
+  deploy:
+    needs: docker-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executar comandos na VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            cd ${{ secrets.VPS_PATH }}
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
