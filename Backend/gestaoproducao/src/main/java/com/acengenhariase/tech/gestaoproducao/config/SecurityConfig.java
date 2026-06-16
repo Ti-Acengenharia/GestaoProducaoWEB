@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
@@ -41,6 +43,8 @@ public class SecurityConfig {
             );
         return http.build();
 
+}
+
     @Bean
     public org.springframework.security.oauth2.client.registration.ClientRegistrationRepository clientRegistrationRepository() {
         org.springframework.security.oauth2.core.AuthorizationGrantType authorizationGrantType = org.springframework.security.oauth2.core.AuthorizationGrantType.AUTHORIZATION_CODE;
@@ -51,7 +55,7 @@ public class SecurityConfig {
                 .clientSecret(System.getenv("GOOGLE_CLIENT_SECRET"))
                 .clientAuthenticationMethod(clientAuthMethod)
                 .authorizationGrantType(authorizationGrantType)
-                .redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}")
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
                 .scope("profile", "email")
                 .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
                 .tokenUri("https://oauth2.googleapis.com/token")
