@@ -12,6 +12,11 @@ services:
       - "3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -26,7 +31,8 @@ services:
     ports:
       - "${HOST_PORT_BACKEND:-8081}:8080"
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
 
   frontend:
     build:
