@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             );
+        return http.build();
 
     @Bean
     public org.springframework.security.oauth2.client.registration.ClientRegistrationRepository clientRegistrationRepository() {
