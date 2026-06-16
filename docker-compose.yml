@@ -25,7 +25,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     ports:
-      - "8080:8080"
+      - "${HOST_PORT_BACKEND:-8081}:8080"
     depends_on:
       - mariadb
 
@@ -33,7 +33,7 @@ services:
     build:
       context: ./frontend
     ports:
-      - "80:80"
+      - "${HOST_PORT_FRONTEND:-8082}:80"
     depends_on:
       - backend
 
