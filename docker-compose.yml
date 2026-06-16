@@ -17,11 +17,10 @@ services:
     build:
       context: ./Backend/gestaoproducao
     environment:
-      DB_HOST: mariadb
-      DB_PORT: 3306
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     ports:
