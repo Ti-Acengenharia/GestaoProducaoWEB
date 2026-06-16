@@ -20,7 +20,7 @@ public class SecurityConfig {
     private OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // Desabilita CSRF para facilitar testes iniciais
             .authorizeHttpRequests(auth -> auth
@@ -29,6 +29,7 @@ public class SecurityConfig {
             )
             .formLogin(withDefaults())
             .oauth2Login(oauth2 -> oauth2
+                .clientRegistrationRepository(clientRegistrationRepository)
                 .successHandler(oauth2LoginSuccessHandler)
             )
             .logout(logout -> logout
