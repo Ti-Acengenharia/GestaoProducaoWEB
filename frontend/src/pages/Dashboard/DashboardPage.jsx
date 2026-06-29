@@ -21,7 +21,9 @@ import {
   MenuItem,
   Paper,
   Grid,
-  TextField
+  TextField,
+  Collapse,
+  Alert
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -36,7 +38,9 @@ import {
   ManageAccounts as UsersIcon,
   AccountTree as CostCenterIcon,
   SquareFoot as UnitIcon,
-  Handyman as ServiceIcon
+  Handyman as ServiceIcon,
+  ExpandLess,
+  ExpandMore
 } from '@mui/icons-material';
 import logoAzul from '../../assets/logoazul.png';
 import UsuariosPage from '../Usuarios/UsuariosPage';
@@ -471,6 +475,7 @@ const VerticalBarChart = ({ data }) => {
 const DashboardPage = () => {
   const [open, setOpen] = useState(true);
   const [selectedItem, setSelectedItem] = useState('dashboard');
+  const [reportsOpen, setReportsOpen] = useState(false);
   const [obras, setObras] = useState([]);
   const [selectedObraId, setSelectedObraId] = useState('all');
   const [producoes, setProducoes] = useState([]);
@@ -711,10 +716,16 @@ const DashboardPage = () => {
     { id: 'servicos', text: 'Serviços', icon: <ServiceIcon /> },
     { id: 'unidades', text: 'Unidades de Medida', icon: <UnitIcon /> },
     { id: 'locais', text: 'Locais de Serviço', icon: <PlaceIcon /> },
-    { id: 'relatorios', text: 'Relatórios', icon: <ReportIcon /> },
+    { id: 'relatorios-parent', text: 'Relatórios', icon: <ReportIcon />, isParent: true },
     { id: 'usuarios', text: 'Usuários', icon: <UsersIcon /> },
     { id: 'centros-custo', text: 'Centros de Custo', icon: <CostCenterIcon /> },
   ];
+
+  const getHeaderTitle = () => {
+    if (selectedItem === 'relatorios-geral') return 'Relatório Geral';
+    if (selectedItem === 'relatorios-pagamento') return 'Relatório de Pagamento';
+    return menuItems.find(item => item.id === selectedItem)?.text || 'Painel de Gestão';
+  };
 
   const isAdmin = currentUser?.roles?.includes('ADMIN') || false;
 
@@ -767,7 +778,19 @@ const DashboardPage = () => {
       case 'locais':
         return <LocaisServicoPage />;
       case 'relatorios':
+      case 'relatorios-geral':
         return <RelatoriosPage selectedObraId={selectedObraId} />;
+      case 'relatorios-pagamento':
+        return (
+          <Box sx={{ p: 4, textAlign: 'center', mt: 4 }}>
+            <Typography variant="h5" color="textSecondary" gutterBottom sx={{ fontWeight: 700 }}>
+              Relatório de Pagamento
+            </Typography>
+            <Alert severity="info" sx={{ maxWidth: 450, mx: 'auto', mt: 2 }}>
+              Este relatório financeiro está em desenvolvimento.
+            </Alert>
+          </Box>
+        );
       case 'dashboard':
       default:
         return (
@@ -913,9 +936,9 @@ const DashboardPage = () => {
             >
               <MenuIcon />
             </IconButton>
-            <img src={logoAzul} alt="Logo" className="header-logo" />
+             <img src={logoAzul} alt="Logo" className="header-logo" />
             <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 600 }}>
-              {menuItems.find(item => item.id === selectedItem)?.text}
+              {getHeaderTitle()}
             </Typography>
           </Box>
           
@@ -982,6 +1005,43 @@ const DashboardPage = () => {
           {menuItems.map((item) => {
             if ((item.id === 'usuarios' || item.id === 'centros-custo') && !isAdmin) {
               return null;
+            }
+            if (item.isParent) {
+              const isChildSelected = selectedItem === 'relatorios-geral' || selectedItem === 'relatorios-pagamento';
+              return (
+                <React.Fragment key={item.id}>
+                  <ListItem disablePadding>
+                    <NavItem 
+                      selected={isChildSelected}
+                      onClick={() => setReportsOpen(!reportsOpen)}
+                    >
+                      <ListItemIcon sx={{ minWidth: 44, color: isChildSelected ? '#103795' : '#444746' }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText primary={item.text} />
+                      {reportsOpen ? <ExpandLess sx={{ color: isChildSelected ? '#103795' : '#444746' }} /> : <ExpandMore sx={{ color: isChildSelected ? '#103795' : '#444746' }} />}
+                    </NavItem>
+                  </ListItem>
+                  <Collapse in={reportsOpen} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      <NavItem 
+                        selected={selectedItem === 'relatorios-geral'}
+                        onClick={() => setSelectedItem('relatorios-geral')}
+                        sx={{ pl: 6 }}
+                      >
+                        <ListItemText primary="Relatório Geral" />
+                      </NavItem>
+                      <NavItem 
+                        selected={selectedItem === 'relatorios-pagamento'}
+                        onClick={() => setSelectedItem('relatorios-pagamento')}
+                        sx={{ pl: 6 }}
+                      >
+                        <ListItemText primary="Relatório Pagamento" />
+                      </NavItem>
+                    </List>
+                  </Collapse>
+                </React.Fragment>
+              );
             }
             return (
               <ListItem key={item.id} disablePadding>
