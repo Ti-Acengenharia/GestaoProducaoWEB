@@ -3,6 +3,7 @@ package com.acengenhariase.tech.gestaoproducao.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -18,6 +19,12 @@ public class SecurityConfig {
 
     @Autowired
     private OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id:}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret:}")
+    private String googleClientSecret;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository) throws Exception {
@@ -48,12 +55,15 @@ public class SecurityConfig {
 
     @Bean
     public org.springframework.security.oauth2.client.registration.ClientRegistrationRepository clientRegistrationRepository() {
+        String clientId = (googleClientId != null && !googleClientId.trim().isEmpty()) ? googleClientId : "dummy-client-id";
+        String clientSecret = (googleClientSecret != null && !googleClientSecret.trim().isEmpty()) ? googleClientSecret : "dummy-client-secret";
+
         org.springframework.security.oauth2.core.AuthorizationGrantType authorizationGrantType = org.springframework.security.oauth2.core.AuthorizationGrantType.AUTHORIZATION_CODE;
         org.springframework.security.oauth2.core.ClientAuthenticationMethod clientAuthMethod = org.springframework.security.oauth2.core.ClientAuthenticationMethod.CLIENT_SECRET_BASIC;
         org.springframework.security.oauth2.client.registration.ClientRegistration registration = org.springframework.security.oauth2.client.registration.ClientRegistration
                 .withRegistrationId("google")
-                .clientId(System.getenv("GOOGLE_CLIENT_ID"))
-                .clientSecret(System.getenv("GOOGLE_CLIENT_SECRET"))
+                .clientId(clientId)
+                .clientSecret(clientSecret)
                 .clientAuthenticationMethod(clientAuthMethod)
                 .authorizationGrantType(authorizationGrantType)
                 .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")

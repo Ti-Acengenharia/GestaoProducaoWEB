@@ -27,7 +27,8 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -38,7 +39,8 @@ import {
   FileUpload as ImportIcon,
   Download as DownloadIcon,
   CloudUpload as CloudUploadIcon,
-  Help as HelpIcon
+  Help as HelpIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import { getColaboradores, createColaborador, updateColaborador, deleteColaborador, getCentrosDeCusto } from '../../services/api';
 
@@ -63,6 +65,58 @@ const ColaboradoresPage = () => {
     centroDeCustoId: ''
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Estados para busca, paginação e LGPD
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+  const [openLgpdModal, setOpenLgpdModal] = useState(false);
+  const [colaboradorToEdit, setColaboradorToEdit] = useState(null);
+
+  // Mascaramento de CPF: exibe apenas os 3 primeiros dígitos, o restante com asteriscos
+  const maskCpf = (cpf) => {
+    if (!cpf) return '';
+    const cleaned = String(cpf).replace(/\D/g, '');
+    if (cleaned.length < 3) return cleaned;
+    return `${cleaned.substring(0, 3)}.***.***-**`;
+  };
+
+  // Mascaramento genérico para dados bancários
+  const maskValue = (val, visibleStart = 1) => {
+    if (!val) return '';
+    const str = String(val).trim();
+    if (str.length <= visibleStart) return '*'.repeat(str.length);
+    return str.substring(0, visibleStart) + '*'.repeat(str.length - visibleStart);
+  };
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+    setPage(0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleEditClick = (colab) => {
+    setColaboradorToEdit(colab);
+    setOpenLgpdModal(true);
+  };
+
+  const handleConfirmLgpd = () => {
+    setOpenLgpdModal(false);
+    if (colaboradorToEdit) {
+      handleOpen(colaboradorToEdit);
+      setColaboradorToEdit(null);
+    }
+  };
 
   useEffect(() => {
     fetchColaboradores();
@@ -304,18 +358,66 @@ const ColaboradoresPage = () => {
     reader.readAsArrayBuffer(importFile);
   };
 
+  // Filtro de colaboradores
+  const filteredColaboradores = colaboradores.filter(colab => {
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase().trim();
+    return (
+      (colab.nomeCompleto && colab.nomeCompleto.toLowerCase().includes(query)) ||
+      (colab.funcao && colab.funcao.toLowerCase().includes(query)) ||
+      (colab.cpf && colab.cpf.toLowerCase().includes(query)) ||
+      (colab.centroDeCustoNome && colab.centroDeCustoNome.toLowerCase().includes(query))
+    );
+  });
+
+  const paginatedColaboradores = filteredColaboradores.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 700, color: '#103795' }}>
           Gerenciamento de Colaboradores
         </Typography>
+      </Box>
+
+      {/* Barra de Pesquisa e Botões de Ação Alinhados */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            placeholder="Pesquisar colaborador..."
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
+            sx={{ width: 280 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            sx={{ textTransform: 'none', height: 40 }}
+          >
+            Pesquisar
+          </Button>
+          {activeSearchQuery && (
+            <Button
+              variant="text"
+              onClick={handleClearSearch}
+              sx={{ textTransform: 'none' }}
+            >
+              Limpar
+            </Button>
+          )}
+        </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="outlined"
             startIcon={<ImportIcon />}
             onClick={() => setOpenImport(true)}
-            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+            sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
           >
             Importar
           </Button>
@@ -323,7 +425,7 @@ const ColaboradoresPage = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpen()}
-            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+            sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
           >
             Novo Colaborador
           </Button>
@@ -343,24 +445,24 @@ const ColaboradoresPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {colaboradores.map((colab) => (
+            {paginatedColaboradores.map((colab) => (
               <TableRow key={colab.id} hover>
                 <TableCell sx={{ fontWeight: 500 }}>{colab.nomeCompleto}</TableCell>
                 <TableCell>{colab.funcao}</TableCell>
-                <TableCell>{colab.cpf}</TableCell>
+                <TableCell>{maskCpf(colab.cpf)}</TableCell>
                 <TableCell>{colab.centroDeCustoNome || 'Não Informado'}</TableCell>
                 <TableCell>
-                  <Tooltip title="Agência / Operação / Conta">
+                  <Tooltip title="Agência / Operação / Conta (Oculto para proteção de dados)">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <BankIcon sx={{ fontSize: '0.9rem', color: '#666' }} />
                       <Typography variant="body2">
-                        {colab.agencia} / {colab.operacao} / {colab.numeroConta}
+                        {maskValue(colab.agencia, 1)} / {maskValue(colab.operacao, 1)} / {maskValue(colab.numeroConta, 2)}
                       </Typography>
                     </Box>
                   </Tooltip>
                 </TableCell>
                 <TableCell align="right">
-                  <IconButton onClick={() => handleOpen(colab)} color="primary" size="small">
+                  <IconButton onClick={() => handleEditClick(colab)} color="primary" size="small">
                     <EditIcon fontSize="small" />
                   </IconButton>
                   <IconButton onClick={() => handleDelete(colab.id)} color="error" size="small">
@@ -369,9 +471,9 @@ const ColaboradoresPage = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {colaboradores.length === 0 && (
+            {paginatedColaboradores.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
                   Nenhum colaborador encontrado.
                 </TableCell>
               </TableRow>
@@ -379,6 +481,17 @@ const ColaboradoresPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredColaboradores.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
 
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <form onSubmit={handleSubmit}>
@@ -482,6 +595,47 @@ const ColaboradoresPage = () => {
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* Modal de Aviso de LGPD */}
+      <Dialog 
+        open={openLgpdModal} 
+        onClose={() => setOpenLgpdModal(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon sx={{ color: '#e65100' }} />
+          Aviso de Privacidade (LGPD)
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              Atenção: Você está prestes a acessar e editar dados pessoais sensíveis deste colaborador.
+            </Alert>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 2, textAlign: 'justify' }}>
+              Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), 
+              o acesso, visualização e edição de dados sensíveis (como CPF e dados bancários) 
+              devem ser realizados apenas para finalidades legítimas e autorizadas pelo sistema.
+            </Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, textAlign: 'justify' }}>
+              Ao continuar, você declara estar ciente de suas responsabilidades de confidencialidade e segurança da informação.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setOpenLgpdModal(false)} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleConfirmLgpd} 
+            variant="contained" 
+            color="warning"
+            sx={{ textTransform: 'none', px: 3 }}
+          >
+            Ok, estou ciente
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Modal de Importação */}
@@ -604,7 +758,7 @@ const ColaboradoresPage = () => {
             {importErrors.map((err, idx) => (
               <ListItem key={idx} sx={{ borderBottom: '1px solid #eee' }}>
                 <ListItemIcon>
-                  <Alert severity="warning" variant="filled" sx={{ p: 0, minWidth: 24, height: 24, '& .MuiAlert-icon': { mr: 0 } }} icon={false}>!</Alert>
+                   <Alert severity="warning" variant="filled" sx={{ p: 0, minWidth: 24, height: 24, '& .MuiAlert-icon': { mr: 0 } }} icon={false}>!</Alert>
                 </ListItemIcon>
                 <ListItemText 
                   primary={<strong>{err.name}</strong>}
