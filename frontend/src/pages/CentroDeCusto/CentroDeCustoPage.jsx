@@ -18,7 +18,8 @@ import {
   TextField,
   Alert,
   Snackbar,
-  Tooltip
+  Tooltip,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,6 +38,39 @@ const CentroDeCustoPage = () => {
     nome: ''
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+    setPage(0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const filteredCentros = centros.filter((c) => {
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase();
+    return (
+      c.nome?.toLowerCase().includes(query) ||
+      c.id?.toString().includes(query)
+    );
+  });
+
+  const paginatedCentros = filteredCentros.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   useEffect(() => {
     fetchCentros();
@@ -114,15 +148,40 @@ const CentroDeCustoPage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#103795' }}>
-          Centros de Custo
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+            sx={{ width: 250 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            sx={{ textTransform: 'none', height: 40 }}
+          >
+            Pesquisar
+          </Button>
+          {activeSearchQuery && (
+            <Button
+              variant="text"
+              onClick={handleClearSearch}
+              sx={{ textTransform: 'none' }}
+            >
+              Limpar
+            </Button>
+          )}
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpen()}
-          sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+          sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
         >
           Novo Centro
         </Button>
@@ -138,12 +197,12 @@ const CentroDeCustoPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {centros.map((centro) => (
+            {paginatedCentros.map((centro) => (
               <TableRow key={centro.id} hover>
                 <TableCell sx={{ fontWeight: 500, color: '#103795' }}>{centro.id}</TableCell>
                 <TableCell>{centro.nome}</TableCell>
                 <TableCell align="right">
-                  <IconButton onClick={() => handleOpen(centro)} color="primary" size="small">
+                   <IconButton onClick={() => handleOpen(centro)} color="primary" size="small">
                     <EditIcon fontSize="small" />
                   </IconButton>
                   <IconButton onClick={() => handleDelete(centro.id)} color="error" size="small">
@@ -152,7 +211,7 @@ const CentroDeCustoPage = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {centros.length === 0 && (
+            {paginatedCentros.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
                   Nenhum centro de custo encontrado.
@@ -162,6 +221,17 @@ const CentroDeCustoPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredCentros.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
 
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <form onSubmit={handleSubmit}>

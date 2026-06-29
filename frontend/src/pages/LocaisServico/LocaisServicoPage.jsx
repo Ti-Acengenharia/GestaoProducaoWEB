@@ -25,7 +25,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  CircularProgress
+  CircularProgress,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -51,6 +52,43 @@ const LocaisServicoPage = () => {
     centroDeCustoId: ''
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Estados para busca e paginação
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+    setPage(0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const filteredLocais = locais.filter((l) => {
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase();
+    return (
+      l.nivel01?.toLowerCase().includes(query) ||
+      l.nivel02?.toLowerCase().includes(query) ||
+      l.nivel03?.toLowerCase().includes(query) ||
+      l.centroDeCustoNome?.toLowerCase().includes(query)
+    );
+  });
+
+  const paginatedLocais = filteredLocais.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   // Estados para importação em lote
   const [openImport, setOpenImport] = useState(false);
@@ -368,17 +406,42 @@ const LocaisServicoPage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#103795' }}>
-          Locais de Serviço
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+            sx={{ width: 250 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            sx={{ textTransform: 'none', height: 40 }}
+          >
+            Pesquisar
+          </Button>
+          {activeSearchQuery && (
+            <Button
+              variant="text"
+              onClick={handleClearSearch}
+              sx={{ textTransform: 'none' }}
+            >
+              Limpar
+            </Button>
+          )}
+        </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="outlined"
             color="error"
             startIcon={<DeleteIcon />}
             onClick={handleDeleteAll}
-            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+            sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
           >
             Excluir Tudo
           </Button>
@@ -386,7 +449,7 @@ const LocaisServicoPage = () => {
             variant="outlined"
             startIcon={<ImportIcon />}
             onClick={() => setOpenImport(true)}
-            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+            sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
           >
             Importar
           </Button>
@@ -394,7 +457,7 @@ const LocaisServicoPage = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpen()}
-            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+            sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
           >
             Novo Local
           </Button>
@@ -413,7 +476,7 @@ const LocaisServicoPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {locais.map((local) => (
+            {paginatedLocais.map((local) => (
               <TableRow key={local.id} hover>
                 <TableCell sx={{ fontWeight: 500 }}>{local.nivel01}</TableCell>
                 <TableCell>{local.nivel02 || '-'}</TableCell>
@@ -429,7 +492,7 @@ const LocaisServicoPage = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {locais.length === 0 && (
+            {paginatedLocais.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                   Nenhum local de serviço encontrado.
@@ -439,6 +502,17 @@ const LocaisServicoPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredLocais.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
 
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <form onSubmit={handleSubmit}>

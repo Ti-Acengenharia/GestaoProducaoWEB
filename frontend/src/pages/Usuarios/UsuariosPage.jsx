@@ -24,7 +24,8 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -46,6 +47,43 @@ const UsuariosPage = () => {
     roles: ['USER']
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Estados para busca e paginação
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+    setPage(0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const filteredUsuarios = usuarios.filter((user) => {
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase();
+    const rolesStr = user.roles?.join(', ') || '';
+    return (
+      user.nome?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      rolesStr.toLowerCase().includes(query)
+    );
+  });
+
+  const paginatedUsuarios = filteredUsuarios.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   useEffect(() => {
     fetchUsuarios();
@@ -126,15 +164,40 @@ const UsuariosPage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#103795' }}>
-          Gerenciamento de Usuários
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+            sx={{ width: 250 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            sx={{ textTransform: 'none', height: 40 }}
+          >
+            Pesquisar
+          </Button>
+          {activeSearchQuery && (
+            <Button
+              variant="text"
+              onClick={handleClearSearch}
+              sx={{ textTransform: 'none' }}
+            >
+              Limpar
+            </Button>
+          )}
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpen()}
-          sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+          sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
         >
           Novo Usuário
         </Button>
@@ -152,7 +215,7 @@ const UsuariosPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {usuarios.map((user) => (
+            {paginatedUsuarios.map((user) => (
               <TableRow key={user.id} hover>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -197,7 +260,7 @@ const UsuariosPage = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {usuarios.length === 0 && (
+            {paginatedUsuarios.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                   Nenhum usuário encontrado.
@@ -207,6 +270,17 @@ const UsuariosPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredUsuarios.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
 
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <form onSubmit={handleSubmit}>

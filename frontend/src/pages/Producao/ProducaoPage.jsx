@@ -29,7 +29,8 @@ import {
   FormControl,
   OutlinedInput,
   Checkbox,
-  ListItemText
+  ListItemText,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -67,9 +68,26 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
   
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  // Estados de paginação
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
   const filteredProducoes = producoes.filter(
     (prod) => selectedObraId === 'all' || prod.centroCustoId === selectedObraId
   );
+
+  const paginatedProducoes = filteredProducoes.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  useEffect(() => {
+    setPage(0);
+  }, [selectedObraId]);
 
   useEffect(() => {
     fetchData();
@@ -269,14 +287,14 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
                   <CircularProgress size={24} />
                 </TableCell>
               </TableRow>
-            ) : filteredProducoes.length === 0 ? (
+            ) : paginatedProducoes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
                   Nenhum registro de produção encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducoes.map((prod) => (
+              paginatedProducoes.map((prod) => (
                 <TableRow key={prod.id} hover>
                   <TableCell>{formatDate(prod.data)}</TableCell>
                   <TableCell sx={{ fontWeight: 500 }}>{prod.acordoNome}</TableCell>
@@ -301,6 +319,17 @@ const ProducaoPage = ({ selectedObraId = 'all', onProducoesChanged }) => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredProducoes.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
       <Dialog 
         open={open} 
         onClose={handleClose} 

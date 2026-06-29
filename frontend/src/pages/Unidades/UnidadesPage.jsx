@@ -18,7 +18,8 @@ import {
   TextField,
   Alert,
   Snackbar,
-  Tooltip
+  Tooltip,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,6 +38,41 @@ const UnidadesPage = () => {
     abreviacao: ''
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Estados para busca e paginação
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+    setPage(0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const filteredUnidades = unidades.filter((u) => {
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase();
+    return (
+      u.nome?.toLowerCase().includes(query) ||
+      u.abreviacao?.toLowerCase().includes(query)
+    );
+  });
+
+  const paginatedUnidades = filteredUnidades.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   useEffect(() => {
     fetchUnidades();
@@ -109,15 +145,40 @@ const UnidadesPage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#103795' }}>
-          Unidades de Medida
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+            sx={{ width: 250 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            sx={{ textTransform: 'none', height: 40 }}
+          >
+            Pesquisar
+          </Button>
+          {activeSearchQuery && (
+            <Button
+              variant="text"
+              onClick={handleClearSearch}
+              sx={{ textTransform: 'none' }}
+            >
+              Limpar
+            </Button>
+          )}
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpen()}
-          sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+          sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
         >
           Nova Unidade
         </Button>
@@ -133,7 +194,7 @@ const UnidadesPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {unidades.map((unidade) => (
+            {paginatedUnidades.map((unidade) => (
               <TableRow key={unidade.id} hover>
                 <TableCell>{unidade.nome}</TableCell>
                 <TableCell sx={{ fontWeight: 600, color: '#103795' }}>{unidade.abreviacao}</TableCell>
@@ -147,7 +208,7 @@ const UnidadesPage = () => {
                 </TableCell>
               </TableRow>
             ))}
-            {unidades.length === 0 && (
+            {paginatedUnidades.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
                   Nenhuma unidade de medida encontrada.
@@ -157,6 +218,17 @@ const UnidadesPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredUnidades.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
 
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <form onSubmit={handleSubmit}>

@@ -23,7 +23,8 @@ import {
   Switch,
   FormControlLabel,
   Tooltip,
-  CircularProgress
+  CircularProgress,
+  TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -48,6 +49,43 @@ const ServicosPage = () => {
     unidade: { id: '' }
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  // Estados para busca e paginação
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearchQuery, setActiveSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 50;
+
+  const handleSearch = () => {
+    setActiveSearchQuery(searchQuery);
+    setPage(0);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setActiveSearchQuery('');
+    setPage(0);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const filteredAcordos = acordos.filter((acordo) => {
+    if (!activeSearchQuery) return true;
+    const query = activeSearchQuery.toLowerCase();
+    const unidadeAbrev = unidades.find(u => u.id === acordo.unidadeId)?.abreviacao || acordo.unidadeNome || '';
+    return (
+      acordo.nomeServico?.toLowerCase().includes(query) ||
+      unidadeAbrev.toLowerCase().includes(query) ||
+      acordo.valor?.toString().includes(query)
+    );
+  });
+
+  const paginatedAcordos = filteredAcordos.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   useEffect(() => {
     fetchData();
@@ -137,15 +175,40 @@ const ServicosPage = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, color: '#103795' }}>
-          Gerenciamento de Serviços
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+            sx={{ width: 250 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            sx={{ textTransform: 'none', height: 40 }}
+          >
+            Pesquisar
+          </Button>
+          {activeSearchQuery && (
+            <Button
+              variant="text"
+              onClick={handleClearSearch}
+              sx={{ textTransform: 'none' }}
+            >
+              Limpar
+            </Button>
+          )}
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpen()}
-          sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+          sx={{ borderRadius: 2, textTransform: 'none', px: 3, height: 40 }}
         >
           Novo Serviço
         </Button>
@@ -169,14 +232,14 @@ const ServicosPage = () => {
                   <CircularProgress size={24} />
                 </TableCell>
               </TableRow>
-            ) : acordos.length === 0 ? (
+            ) : paginatedAcordos.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                   Nenhum serviço encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              acordos.map((acordo) => (
+              paginatedAcordos.map((acordo) => (
                 <TableRow key={acordo.id} hover>
                   <TableCell sx={{ fontWeight: 500 }}>{acordo.nomeServico}</TableCell>
                   <TableCell>{unidades.find(u => u.id === acordo.unidadeId)?.abreviacao || acordo.unidadeNome || '-'}</TableCell>
@@ -208,6 +271,17 @@ const ServicosPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        rowsPerPageOptions={[50]}
+        component="div"
+        count={filteredAcordos.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        sx={{ borderTop: '1px solid #e0e0e0' }}
+      />
 
       <Dialog 
         open={open} 
