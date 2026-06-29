@@ -51,6 +51,7 @@ import ColaboradoresPage from '../Colaboradores/ColaboradoresPage';
 import ServicosPage from '../Servicos/ServicosPage';
 import ProducaoPage from '../Producao/ProducaoPage';
 import RelatoriosPage from '../Relatorios/RelatoriosPage';
+import RelatoriosPagamentoPage from '../Relatorios/RelatoriosPagamentoPage';
 import { getCentrosDeCusto, getProducoes, getColaboradores, getAcordos, getMe, logout } from '../../services/api';
 
 const drawerWidth = 280;
@@ -781,16 +782,7 @@ const DashboardPage = () => {
       case 'relatorios-geral':
         return <RelatoriosPage selectedObraId={selectedObraId} />;
       case 'relatorios-pagamento':
-        return (
-          <Box sx={{ p: 4, textAlign: 'center', mt: 4 }}>
-            <Typography variant="h5" color="textSecondary" gutterBottom sx={{ fontWeight: 700 }}>
-              Relatório de Pagamento
-            </Typography>
-            <Alert severity="info" sx={{ maxWidth: 450, mx: 'auto', mt: 2 }}>
-              Este relatório financeiro está em desenvolvimento.
-            </Alert>
-          </Box>
-        );
+        return <RelatoriosPagamentoPage selectedObraId={selectedObraId} />;
       case 'dashboard':
       default:
         return (
