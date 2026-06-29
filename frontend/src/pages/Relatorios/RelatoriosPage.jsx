@@ -101,6 +101,20 @@ const RelatoriosPage = ({ selectedObraId }) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   };
 
+  const maskCpf = (cpf) => {
+    if (!cpf) return '';
+    const cleaned = String(cpf).replace(/\D/g, '');
+    if (cleaned.length < 3) return cleaned;
+    return `${cleaned.substring(0, 3)}.***.***-**`;
+  };
+
+  const maskValue = (val, visibleStart = 1) => {
+    if (!val) return '';
+    const str = String(val).trim();
+    if (str.length <= visibleStart) return '*'.repeat(str.length);
+    return str.substring(0, visibleStart) + '*'.repeat(str.length - visibleStart);
+  };
+
   const getGroupedData = () => {
     // 1. Filtrar produções pela data e pela obra
     const filtered = producoes.filter((p) => {
@@ -614,10 +628,10 @@ const RelatoriosPage = ({ selectedObraId }) => {
                     subheader={
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: 1 }}>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                          CPF: {c.cpf}
+                          CPF: {maskCpf(c.cpf)}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>
-                          Dados Bancários: Ag: {c.agencia || '-'} / Op: {c.operacao || '-'} / Conta: {c.numeroConta || '-'}
+                          Dados Bancários: Ag: {maskValue(c.agencia, 1)} / Op: {maskValue(c.operacao, 1)} / Conta: {maskValue(c.numeroConta, 2)}
                         </Typography>
                       </Box>
                     }
