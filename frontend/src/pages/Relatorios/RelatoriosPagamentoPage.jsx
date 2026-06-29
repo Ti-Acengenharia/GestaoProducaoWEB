@@ -17,12 +17,17 @@ import {
   CircularProgress,
   Divider,
   Tooltip,
-  Alert
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Description as ExcelIcon,
   AccountBalance as BankIcon,
-  Assessment as ReportIcon
+  Assessment as ReportIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import { getCentrosDeCusto, getProducoes, getColaboradores } from '../../services/api';
 
@@ -31,6 +36,7 @@ const RelatoriosPagamentoPage = ({ selectedObraId }) => {
   const [producoes, setProducoes] = useState([]);
   const [colaboradores, setColaboradores] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openLgpdModal, setOpenLgpdModal] = useState(false);
 
   // Filtros locais
   const [filterObra, setFilterObra] = useState(selectedObraId || 'all');
@@ -169,6 +175,15 @@ const RelatoriosPagamentoPage = ({ selectedObraId }) => {
     XLSX.writeFile(workbook, `relatorio_pagamento_${obraNome}_${month}.xlsx`);
   };
 
+  const handleExportExcelClick = () => {
+    setOpenLgpdModal(true);
+  };
+
+  const handleConfirmLgpd = () => {
+    setOpenLgpdModal(false);
+    handleExportExcel();
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -180,7 +195,7 @@ const RelatoriosPagamentoPage = ({ selectedObraId }) => {
           variant="contained"
           color="success"
           startIcon={<ExcelIcon />}
-          onClick={handleExportExcel}
+          onClick={handleExportExcelClick}
           disabled={loading || paymentsData.length === 0}
           sx={{ borderRadius: 2, textTransform: 'none', px: 4, py: 1.2, fontWeight: 600 }}
         >
@@ -294,6 +309,47 @@ const RelatoriosPagamentoPage = ({ selectedObraId }) => {
           )}
         </Box>
       )}
+
+      {/* Modal de Aviso de LGPD */}
+      <Dialog 
+        open={openLgpdModal} 
+        onClose={() => setOpenLgpdModal(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: '#e65100', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon sx={{ color: '#e65100' }} />
+          Aviso de Privacidade (LGPD)
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              Atenção: Você está prestes a exportar um relatório contendo dados pessoais sensíveis de colaboradores.
+            </Alert>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 2, textAlign: 'justify' }}>
+              Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018), 
+              a exportação e o tratamento de dados pessoais (como CPF e dados bancários) 
+              devem ser realizados com responsabilidade e estritamente para finalidades legítimas autorizadas.
+            </Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ fontWeight: 600, textAlign: 'justify' }}>
+              Ao prosseguir, você declara estar ciente de suas obrigações de confidencialidade e segurança das informações.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setOpenLgpdModal(false)} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleConfirmLgpd} 
+            variant="contained" 
+            color="warning"
+            sx={{ textTransform: 'none', px: 3 }}
+          >
+            Ok, estou ciente
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
